@@ -1,0 +1,7 @@
+{
+  "generator-h5package": {
+    "projectName": "demo-webaudio",
+    "projectDesc": "Web Audio API demo",
+    "projectLicense": "MIT"
+  }
+}
