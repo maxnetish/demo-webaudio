@@ -1,0 +1,19 @@
+{
+  "sourceMaps": true,
+  "presets": [
+    "react",
+    [
+      "env",
+      {
+        "targets": {
+          "browsers": "last 2 versions"
+        },
+        "loose": true
+      }
+    ]
+  ],
+  "plugins": [
+    ["transform-decorators-legacy"],
+    ["transform-react-jsx", { "pragma": "h" }]
+  ]
+}

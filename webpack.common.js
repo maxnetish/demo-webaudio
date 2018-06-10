@@ -4,7 +4,8 @@ const CleanWebpackPlugin = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const { HashedModuleIdsPlugin } = require('webpack');
+const {HashedModuleIdsPlugin} = require('webpack');
+const ENV = process.env.NODE_ENV || 'development';
 
 module.exports = {
     entry: {
@@ -30,64 +31,112 @@ module.exports = {
             }
         }
     },
+
+    resolve: {
+        extensions: ['.jsx', '.js', '.json', '.less'],
+        modules: [
+            path.resolve(__dirname, "src/lib"),
+            path.resolve(__dirname, "node_modules"),
+            'node_modules'
+        ],
+        alias: {
+            // components: path.resolve(__dirname, "src/components"),    // used for tests
+            // style: path.resolve(__dirname, "src/style"),
+            'react': 'preact-compat',
+            'react-dom': 'preact-compat'
+        }
+    },
+
     module: {
-        rules: [{
-            test: /(\.jsx|\.js)$/,
-            use: {
-                loader: 'babel-loader',
-                options: {
-                    presets: ["es2015"]
+        rules: [
+            {
+                test: /\.jsx?$/,
+                exclude: path.resolve(__dirname, 'src'),
+                enforce: 'pre',
+                use: 'source-map-loader'
+            },
+            {
+                test: /(\.jsx|\.js)$/,
+                use: {
+                    loader: 'babel-loader',
+                    // options: {
+                    //     presets: ["react"]
+                    // }
+                },
+                exclude: /node_modules/
+                // include: '/src/assets/js/'
+            },
+            {
+                test: /(\.css|\.scss|\.sass)$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    'sass-loader',
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            plugins: () => [
+                                require('autoprefixer')({
+                                    'browsers': [
+                                        '> 1%',
+                                        'last 2 versions'
+                                    ]
+                                })
+                            ]
+                        }
+
+                    }
+                ]
+            },
+            {
+                test: /\.json$/,
+                use: 'json-loader'
+            },
+            {
+                test: /\.(xml|html|txt|md)$/,
+                use: 'raw-loader'
+            },
+            {
+                test: /\.(gif|jpg|png|ico)\??.*$/,
+                use: {
+                    loader: 'url-loader',
+                    options: {
+                        limit: 1024,
+                        name: '[name].[ext]',
+                        publicPath: '../../',
+                        outputPath: 'assets/css/'
+                    }
                 }
             },
-            exclude: /node_modules/,
-            include: '/src/'
-        }, {
-            test: /(\.css|\.scss|\.sass)$/,
-            use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader', {
-                loader: 'postcss-loader',
-                options: {
-                    plugins: () => [require('autoprefixer')({
-                        'browsers': ['> 1%', 'last 2 versions']
-                    })]
+            {
+                test: /\.(svg|woff|otf|ttf|eot)\??.*$/,
+                use: {
+                    loader: 'url-loader',
+                    options: {
+                        limit: 1024,
+                        name: '[name].[ext]',
+                        publicPath: '../../',
+                        outputPath: 'assets/css/'
+                    }
                 }
-
-            }]
-        }, {
-            test: /\.(gif|jpg|png|ico)\??.*$/,
-            use: {
-                loader: 'url-loader',
-                options: {
-                    limit: 1024,
-                    name: '[name].[ext]',
-                    publicPath: '../../',
-                    outputPath: 'assets/css/'
-                }
-            }
-        }, {
-            test: /\.(svg|woff|otf|ttf|eot)\??.*$/,
-            use: {
-                loader: 'url-loader',
-                options: {
-                    limit: 1024,
-                    name: '[name].[ext]',
-                    publicPath: '../../',
-                    outputPath: 'assets/css/'
-                }
-            }
-        }, {
-            test: /\.html$/,
-            use: {
-                loader: 'html-loader',
-                options: {
-                    minimize: true,
-                    removeComments: false,
-                    collapseWhitespace: false
-                }
-            }
-        }]
+            },
+            // {
+            //     test: /\.html$/,
+            //     use: {
+            //         loader: 'html-loader',
+            //         options: {
+            //             minimize: false,
+            //             removeComments: false,
+            //             collapseWhitespace: false
+            //         }
+            //     }
+            // }
+        ]
     },
     plugins: [
-        //清空dist
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify(ENV)
+        }),
         new HashedModuleIdsPlugin(),
         new CleanWebpackPlugin(["dist"], {
             root: '',
@@ -109,11 +158,13 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: './src/index.html',
             inject: 'body',
-            hash: false,
-            minify: {
-                removeComments: true,
-                collapseWhitespace: true
-            }
+            hash: true
+            // minify: {
+            //     removeComments: false,
+            //     collapseWhitespace: false
+            // }
+            // favicon: path.resolve(__dirname, 'src/assets/favicon.ico'),
+
         })
 
     ]

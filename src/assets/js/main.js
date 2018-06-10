@@ -1,5 +1,5 @@
 /**
- * Created by sanchez 
+ * Created by sanchez
  */
 'use strict';
 
@@ -22,19 +22,26 @@ import scss from '../css/sass.scss';
 //CommonJS
 // var Bar2 = require('./entities/Bar2');
 
-import BPlayer from './audio-player';
+import {h, render} from 'preact';
+import App from './components/app.jsx';
+
+// import BPlayer from './audio-player';
 
 
 window.app = {
-    init: function() {
-        var that = this;
+    init: function () {
+        const that = this;
+        // const appInstance = new App();
 
-        this.bPlayer = new BPlayer();
+        // this.bPlayer = new BPlayer();
+
+        // const App = require('./components/app').default;
+        this.rootComponent = render(<App/>, document.querySelector('#preact-app'));
 
         return that;
     }
 };
-window.onload = function() {
+window.onload = function () {
     window.app.init();
 };
 
