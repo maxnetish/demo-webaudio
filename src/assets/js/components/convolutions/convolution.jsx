@@ -2,7 +2,8 @@ import {h, Component} from 'preact';
 import autobind from 'core-decorators/es/autobind';
 import debounce from 'core-decorators/es/debounce';
 
-const windowURL = window.URL;
+import AudioElementSource from '../audio-element-source';
+
 const propsOfImpulseBuffer = ['duration', 'decay', 'reverse'];
 
 function impulseResponse({duration = 0.2, decay = 2, reverse, contextInstance}) {
@@ -30,22 +31,11 @@ export default class Convolution extends Component {
             duration: 0.2,
             decay: 2,
             gain: 0.5,
-            reverse: false,
-            mediaFileUrl: null
+            reverse: false
         };
 
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.updateImpulseBuffer();
-    }
-
-    @autobind
-    handleChangeFileInput(e) {
-        const fileObject = e.target.files[0];
-        if (fileObject) {
-            this.setState(prev => ({
-                mediaFileUrl: windowURL.createObjectURL(fileObject)
-            }));
-        }
     }
 
     @autobind
@@ -95,7 +85,7 @@ export default class Convolution extends Component {
                 decay: this.state.decay,
                 reverse: this.state.reverse
             });
-            if(this.convolver) {
+            if (this.convolver) {
                 console.log('set impulse buffer');
                 this.convolver.buffer = this.impulseBuffer;
             }
@@ -130,19 +120,17 @@ export default class Convolution extends Component {
 
         return <div>
             <div>
-                <audio
-                    controls
-                    src={state.mediaFileUrl}
-                    ref={this.refAudioElement}
-                />
+                <h3>Convolution effect</h3>
+                <p>
+                    Apply convolution with simple impulse response to produce reverberation-like effect.
+                </p>
+                <p>
+                    What is convolution? See <a href="https://en.wikipedia.org/wiki/Convolution_reverb"
+                                                target="_blank">here</a>
+                </p>
             </div>
-            <div>
-                <input
-                    type="file"
-                    accept="audio/*"
-                    onChange={this.handleChangeFileInput}
-                />
-            </div>
+
+            <AudioElementSource refAudioElement={this.refAudioElement}/>
             <div>
                 <input
                     type="range"

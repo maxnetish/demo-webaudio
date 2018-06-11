@@ -7,7 +7,7 @@ export default class App extends Component {
             <div id="app">
                 <h1>Demo audio</h1>
                 <section>
-                    <h2>Simple audio</h2>
+                    <h3>Simple audio</h3>
                     <Convolution/>
                 </section>
             </div>
