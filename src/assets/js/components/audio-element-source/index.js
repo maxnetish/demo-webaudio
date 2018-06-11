@@ -165,12 +165,10 @@ export default class AudioSourceElement extends Component {
                     ref={elm => this.fileInputElement = elm}
                 />
                 <audio
-                    style="display:none"
                     onCanPlay={this.handleCanPlay}
                     onTimeUpdate={this.handleAudioTimeupdate}
                     onPlay={this.handlePlayAudio}
                     onPause={this.handlePauseAudio}
-                    controls
                     src={state.mediaFileUrl}
                     ref={this.refAudioElement}
                 />
