@@ -22,7 +22,9 @@ import scss from '../css/sass.scss';
 //CommonJS
 // var Bar2 = require('./entities/Bar2');
 
-import {h, render} from 'preact';
+import React from 'react';
+import {render} from 'react-dom';
+
 import App from './components/app.jsx';
 
 // import BPlayer from './audio-player';

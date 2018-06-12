@@ -14,6 +14,7 @@
   ],
   "plugins": [
     ["transform-decorators-legacy"],
-    ["transform-react-jsx", { "pragma": "h" }]
+    ["transform-class-properties"],
+    ["transform-react-jsx"]
   ]
 }

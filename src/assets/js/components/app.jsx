@@ -1,10 +1,13 @@
-import {h, Component} from 'preact';
+
+import React from 'react';
+
+import {Component} from 'react';
 import Convolution from './convolutions/convolution.jsx';
 
 export default class App extends Component {
-    render(props, state) {
+    render() {
         return (
-            <div id="app">
+            <div>
                 <h1>Demo audio</h1>
                 <section>
                     <h3>Simple audio</h3>

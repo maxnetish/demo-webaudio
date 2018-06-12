@@ -1,6 +1,7 @@
-import {h, Component} from 'preact';
+import React from 'react';
+
+import {Component} from 'react';
 import autobind from 'core-decorators/es/autobind';
-import debounce from 'core-decorators/es/debounce';
 
 import AudioElementSource from '../audio-element-source';
 
@@ -27,6 +28,8 @@ export default class Convolution extends Component {
     constructor(props) {
         super(props);
 
+        this.audioElementSourceRef = React.createRef();
+
         this.state = {
             duration: 0.2,
             decay: 2,
@@ -35,22 +38,33 @@ export default class Convolution extends Component {
         };
 
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        this.convolver = this.audioContext.createConvolver();
+        this.convolverGain = this.audioContext.createGain();
+
+        this.convolver.loop = true;
+        this.convolver.normalize = true;
+        this.convolverGain.gain.value = this.state.gain;
+
+        this.convolver.connect(this.convolverGain);
+        this.convolverGain.connect(this.audioContext.destination);
+
         this.updateImpulseBuffer();
     }
 
     @autobind
-    @debounce(250)
-    handleChangeDurationInput(e) {
+    handleInputDurationInput(e) {
+        const {value} = e.target;
         this.setState(prev => ({
-            duration: parseFloat(e.target.value)
+            duration: parseFloat(value)
         }));
     }
 
     @autobind
-    @debounce(250)
     handleChangeDecayInput(e) {
+        const {value} = e.target;
         this.setState(prev => ({
-            decay: parseFloat(e.target.value)
+            decay: parseFloat(value)
         }));
     }
 
@@ -62,16 +76,14 @@ export default class Convolution extends Component {
     }
 
     @autobind
-    @debounce(250)
     handleChangeGainInput(e) {
-        this.convolverGain.gain.value = e.target.value;
+        const {value} = e.target;
         this.setState(prev => ({
-            gain: parseFloat(e.target.value)
+            gain: parseFloat(value)
         }));
     }
 
     @autobind
-    @debounce(500)
     updateImpulseBuffer() {
         const self = this;
         this.currentIpulseParams = this.currentIpulseParams || {};
@@ -96,27 +108,47 @@ export default class Convolution extends Component {
     }
 
     @autobind
-    refAudioElement(audioElm) {
-        this.audioElement = audioElm;
+    buildAudioChain() {
+        // not used
 
-        this.audioSource = this.audioContext.createMediaElementSource(this.audioElement);
-        this.convolver = this.audioContext.createConvolver();
-        this.convolverGain = this.audioContext.createGain();
+        const audioElement = this.audioElementSourceRef.current &&
+            this.audioElementSourceRef.current.audioElementRef &&
+            this.audioElementSourceRef.current.audioElementRef.current;
 
-        this.convolver.buffer = this.impulseBuffer;
+        console.log(audioElement);
 
-        this.audioSource.connect(this.convolverGain);
-        this.audioSource.connect(this.audioContext.destination);
-        this.convolverGain.connect(this.convolver);
-        this.convolver.connect(this.audioContext.destination);
-
-        this.convolver.loop = true;
-        this.convolver.normalize = true;
-        this.convolverGain.gain.value = this.state.gain;
+        // this.audioSource = this.audioContext.createMediaElementSource(this.audioElement);
+        // this.convolver = this.audioContext.createConvolver();
+        // this.convolverGain = this.audioContext.createGain();
+        //
+        // this.convolver.buffer = this.impulseBuffer;
+        //
+        // this.audioSource.connect(this.convolverGain);
+        // this.audioSource.connect(this.audioContext.destination);
+        // this.convolverGain.connect(this.convolver);
+        // this.convolver.connect(this.audioContext.destination);
+        //
+        // this.convolver.loop = true;
+        // this.convolver.normalize = true;
+        // this.convolverGain.gain.value = this.state.gain;
     }
 
-    render(props, state) {
+    @autobind()
+    handleAudioSourceReady (audioElmRef) {
+     const audioElement = audioElmRef.current;
+        this.audioSource = this.audioContext.createMediaElementSource(audioElement);
+        this.audioSource.connect(this.convolver);
+        this.audioSource.connect(this.audioContext.destination);
+    }
+
+    render() {
+        const state = this.state;
+        const props = this.props;
+
         this.updateImpulseBuffer();
+        if (this.convolverGain) {
+            this.convolverGain.gain.value = this.state.gain;
+        }
 
         return <div>
             <div>
@@ -129,8 +161,7 @@ export default class Convolution extends Component {
                                                 target="_blank">here</a>
                 </p>
             </div>
-
-            <AudioElementSource refAudioElement={this.refAudioElement}/>
+            <AudioElementSource ref={this.audioElementSourceRef} onAudioSourceReady={this.handleAudioSourceReady}/>
             <div>
                 <input
                     type="range"
@@ -139,7 +170,8 @@ export default class Convolution extends Component {
                     step="0.1"
                     list="reverbDurationMarks"
                     value={state.duration}
-                    onInput={this.handleChangeDurationInput}
+                    onInput={this.handleInputDurationInput}
+                    onChange={this.handleInputDurationInput}
                 />
                 <datalist id="reverbDurationMarks">
                     <option value="0" label="0"/>
@@ -160,6 +192,7 @@ export default class Convolution extends Component {
                     list="reverbDecayMarks"
                     value={state.decay}
                     onInput={this.handleChangeDecayInput}
+                    onChange={this.handleChangeDecayInput}
                 />
                 <datalist id="reverbDecayMarks">
                     <option value="0" label="0"/>
@@ -190,6 +223,7 @@ export default class Convolution extends Component {
                     list="reverbGainMarks"
                     value={state.gain}
                     onInput={this.handleChangeGainInput}
+                    onChange={this.handleChangeGainInput}
                 />
                 <datalist id="reverbGainMarks">
                     <option value="0" label="0"/>
