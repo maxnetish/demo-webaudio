@@ -1,0 +1,27 @@
+$sliderFillColor: #7cb342;
+
+.rangeslider-horizontal {
+
+  height: 6px;
+  border-radius: 3px;
+
+  .rangeslider__handle {
+
+    &::after {
+      content: none;
+    }
+
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translate3d(-50%, -50%, 0);
+
+    background: darken($sliderFillColor, 25%);
+    border: 1px solid #ccc0;
+    cursor: pointer;
+    display: inline-block;
+    position: absolute;
+    box-shadow: 0 1px 3px transparentize($sliderFillColor, 0.5), 0 -1px 3px transparentize($sliderFillColor, 0.1);
+  }
+}

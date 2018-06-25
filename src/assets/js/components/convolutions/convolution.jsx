@@ -3,7 +3,7 @@ import React from 'react';
 import {Component} from 'react';
 import autobind from 'core-decorators/es/autobind';
 
-import AudioElementSource from '../audio-element-source';
+import AudioElementSource from '../audio-element-source/component';
 
 const propsOfImpulseBuffer = ['duration', 'decay', 'reverse'];
 

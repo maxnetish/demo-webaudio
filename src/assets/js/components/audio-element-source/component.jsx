@@ -13,7 +13,14 @@ import classNames from 'classnames';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
 
+import './rangeslider-overrides.scss';
+
 const windowURL = window.URL;
+
+const playButtonLabelByState = {
+    PAUSE: 'Play',
+    PLAY: 'Pause'
+};
 
 function positionToDisplay(pos) {
     if (isNaN(pos) || !isNumber(pos)) {
@@ -27,11 +34,6 @@ function positionToDisplay(pos) {
 
     return `${minutes}:${seconds}`;
 }
-
-const playButtonLabelByState = {
-    'PLAY': 'Pause',
-    'PAUSE': 'Play'
-};
 
 export default class AudioSourceElement extends Component {
 
@@ -47,6 +49,7 @@ export default class AudioSourceElement extends Component {
         this.sliderPositionRef = React.createRef();
 
         this.canPlaySentOnce = false;
+        this.sliderChanging = false;
 
         this.state = {
             mediaFileUrl: null,
@@ -55,7 +58,6 @@ export default class AudioSourceElement extends Component {
             sliderVal: 0,
             sliderMax: 10,
             sliderDisabled: false,
-            sliderChanging: false,
             playState: 'PAUSE', // PLAY
             position: null,
             muted: false
@@ -94,36 +96,26 @@ export default class AudioSourceElement extends Component {
 
     @autobind()
     handleAudioSliderBeginChange(e) {
-        console.log('handleAudioSliderBeginChange sliderRef position(): ', this.sliderPositionRef.current.position(e));
-        // const {value} = e.detail;
-        this.setState(prev => ({
-            sliderChanging: true,
-            // sliderValue: value
-        }));
+        this.sliderChanging = true;
     }
 
     @autobind()
     handleAudioSliderChangeComplete(e) {
-        console.log('handleAudioSliderChangeComplete sliderRef position(): ', this.sliderPositionRef.current.position(e));
-        // const {value} = e.detail;
-        // console.log('handleAudioSliderChangeComplete value: ', value);
-        // if (this.audioElementRef.current) {
-        //     this.audioElementRef.current.currentTime = value;
-        // }
-        this.setState(prev => ({
-            sliderChanging: false,
-            // sliderValue: value
-        }));
+        const self = this;
+        const localSliderValue = this.state.sliderValue;
+        setTimeout(function () {
+            self.sliderChanging = false;
+            if (self.audioElementRef.current) {
+                self.audioElementRef.current.currentTime = localSliderValue;
+            }
+        }, 0);
     }
 
     @autobind()
     handleAudioSliderChange(e) {
-        console.log('handleAudioSliderChange: ', e);
-        if (this.audioElementRef.current) {
-            this.audioElementRef.current.currentTime = e;
-        }
+        // set flag sliderChanging to prevent handleAudioTimeupdate() of setting slider value before call handleAudioSliderChangeComplete()
+        this.sliderChanging = true;
         this.setState(prev => ({
-            sliderChanging: false,
             sliderValue: e
         }));
     }
@@ -132,7 +124,7 @@ export default class AudioSourceElement extends Component {
     handleCanPlay(e) {
         const {duration, currentTime} = e.target;
 
-        if(isFunction(this.props.onAudioSourceReady) && !this.canPlaySentOnce) {
+        if (isFunction(this.props.onAudioSourceReady) && !this.canPlaySentOnce) {
             this.props.onAudioSourceReady(this.audioElementRef);
             this.canPlaySentOnce = true;
         }
@@ -148,20 +140,16 @@ export default class AudioSourceElement extends Component {
     @autobind()
     handleAudioTimeupdate(e) {
         const {currentTime} = e.target;
-
-        this.setState(prev => {
-            // do not modify slider when user drags it
-            if (prev.sliderChanging) {
-                return {
-                    position: currentTime
-                };
-            }
-
-            return {
+        if (this.sliderChanging) {
+            this.setState(prev => ({
+                position: currentTime
+            }));
+        } else {
+            this.setState(prev => ({
                 position: currentTime,
                 sliderValue: currentTime
-            };
-        });
+            }));
+        }
     }
 
     @autobind()
@@ -196,6 +184,10 @@ export default class AudioSourceElement extends Component {
     @autobind()
     formatSliderValue(val) {
         return positionToDisplay(val);
+    }
+
+    render() {
+        return renderFn.call(this);
     }
 
     render() {
@@ -238,11 +230,11 @@ export default class AudioSourceElement extends Component {
                             {playButtonLabelByState[state.playState]}
                         </button>
                     </div>
-                    <div>{positionToDisplay(state.position)}</div>
+                    <div>{this.formatSliderValue(state.position)}</div>
                 </div>
-                <div>
-                    <div className="caption" style={{position: 'absolute', right: '20px'}}>
-                        {state.mediaFileUrl ? positionToDisplay(state.sliderMax) : null}
+                <div style={{position:'relative'}}>
+                    <div className="caption" style={{position: 'absolute', right:'0px', top: '-28px'}}>
+                        {state.mediaFileUrl ? this.formatSliderValue(state.sliderMax) : null}
                     </div>
                     <Slider
                         value={state.sliderValue}
