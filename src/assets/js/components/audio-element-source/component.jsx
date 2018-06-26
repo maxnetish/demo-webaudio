@@ -10,6 +10,9 @@ import isNaN from 'lodash/isNaN';
 
 import classNames from 'classnames';
 
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faPlay, faPause, faUndoAlt} from '@fortawesome/free-solid-svg-icons';
+import {Button, ButtonGroup} from 'reactstrap';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
 
@@ -45,7 +48,7 @@ export default class AudioSourceElement extends Component {
         super(props);
 
         this.fileInputElementRef = React.createRef();
-        this.audioElementRef = React.createRef();
+        // this.audioElementRef = React.createRef();
         this.sliderPositionRef = React.createRef();
 
         this.canPlaySentOnce = false;
@@ -60,7 +63,7 @@ export default class AudioSourceElement extends Component {
             sliderDisabled: false,
             playState: 'PAUSE', // PLAY
             position: null,
-            muted: false
+            loop: false
         };
     }
 
@@ -182,22 +185,32 @@ export default class AudioSourceElement extends Component {
     }
 
     @autobind()
+    handleLoopButton(e) {
+        this.setState(prev => ({
+            loop: !prev.loop
+        }));
+    }
+
+    @autobind()
     formatSliderValue(val) {
         return positionToDisplay(val);
     }
 
     render() {
-        return renderFn.call(this);
-    }
-
-    render() {
         const state = this.state;
         const props = this.props;
+        const audioElm = this.audioElementRef.current;
 
-        const playBtnClass = classNames({
-            'fas fa-play-circle fa-3x': state.playState === 'PAUSE',
-            'fas fa-pause-circle fa-3x': state.playState === 'PLAY'
-        });
+        const playPauseIcon = {
+            'PLAY': faPause,
+            'PAUSE': faPlay
+        };
+
+        // update audio element media props
+        if(audioElm) {
+            audioElm.loop = !!state.loop;
+        }
+
 
         return <div className="card">
             <div className="caption">Audio source</div>
@@ -218,18 +231,15 @@ export default class AudioSourceElement extends Component {
                     src={state.mediaFileUrl}
                     ref={this.audioElementRef}
                 />
-                <div style={{display: 'flex'}}>
-                    <div>
-                        <button
-                            type="button"
-                            style={{height: 'auto'}}
-                            disabled={!state.mediaFileUrl}
-                            onClick={this.handlePlayPauseButton}
-                        >
-                            <i className={playBtnClass}/>
-                            {playButtonLabelByState[state.playState]}
-                        </button>
-                    </div>
+                <div className="d-flex">
+                    <ButtonGroup>
+                        <Button color="primary" onClick={this.handlePlayPauseButton} disabled={!state.mediaFileUrl}>
+                            <FontAwesomeIcon icon={playPauseIcon[state.playState]}/>
+                        </Button>
+                        <Button color="primary" active={!!state.loop} onClick={this.handleLoopButton}>
+                            <FontAwesomeIcon icon={faUndoAlt}/>
+                        </Button>
+                    </ButtonGroup>
                     <div>{this.formatSliderValue(state.position)}</div>
                 </div>
                 <div style={{position:'relative'}}>

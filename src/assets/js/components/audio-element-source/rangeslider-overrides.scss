@@ -1,9 +1,16 @@
-$sliderFillColor: #7cb342;
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+
+$sliderFillColor: $cyan;
 
 .rangeslider-horizontal {
 
   height: 6px;
   border-radius: 3px;
+
+  .rangeslider__fill {
+    background-color: $sliderFillColor;
+  }
 
   .rangeslider__handle {
 

@@ -10,8 +10,8 @@
 
 // import CSS
 // import animate_css from 'animate.css/animate.min.css';
-import css from '../css/css.css';
-import scss from '../css/sass.scss';
+// import css from '../css/css.css';
+// import scss from '../css/sass.scss';
 
 
 // import Js Plugins/Entities
@@ -21,6 +21,8 @@ import scss from '../css/sass.scss';
 // import Howler from 'howler';
 //CommonJS
 // var Bar2 = require('./entities/Bar2');
+
+import 'bootstrap/dist/css/bootstrap.css';
 
 import React from 'react';
 import {render} from 'react-dom';
