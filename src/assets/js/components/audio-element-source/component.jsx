@@ -11,7 +11,7 @@ import isNaN from 'lodash/isNaN';
 import classNames from 'classnames';
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faPlay, faPause, faUndoAlt} from '@fortawesome/free-solid-svg-icons';
+import {faPlay, faPause, faUndoAlt, faEject, faVolumeOff} from '@fortawesome/free-solid-svg-icons';
 import {Button, ButtonGroup} from 'reactstrap';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
@@ -48,7 +48,7 @@ export default class AudioSourceElement extends Component {
         super(props);
 
         this.fileInputElementRef = React.createRef();
-        // this.audioElementRef = React.createRef();
+        this.audioElementRef = React.createRef();
         this.sliderPositionRef = React.createRef();
 
         this.canPlaySentOnce = false;
@@ -63,7 +63,8 @@ export default class AudioSourceElement extends Component {
             sliderDisabled: false,
             playState: 'PAUSE', // PLAY
             position: null,
-            loop: false
+            loop: false,
+            muted: false
         };
     }
 
@@ -85,17 +86,17 @@ export default class AudioSourceElement extends Component {
         }
     }
 
-    @autobind()
-    audioElementRef(elm) {
-        if (!elm) {
-            // strange: refAudioElement calls with null after set src
-            return;
-        }
-        if (isFunction(this.props.audioElementRef)) {
-            this.props.audioElementRef(elm);
-        }
-        this.audioElementRef = elm;
-    }
+    // @autobind()
+    // audioElementRef(elm) {
+    //     if (!elm) {
+    //         // strange: refAudioElement calls with null after set src
+    //         return;
+    //     }
+    //     if (isFunction(this.props.audioElementRef)) {
+    //         this.props.audioElementRef(elm);
+    //     }
+    //     this.audioElementRef = elm;
+    // }
 
     @autobind()
     handleAudioSliderBeginChange(e) {
@@ -190,6 +191,13 @@ export default class AudioSourceElement extends Component {
             loop: !prev.loop
         }));
     }
+    
+    @autobind()
+    handleMuteButton(e) {
+        this.setState(prev => ({
+            muted: !prev.muted
+        }));
+    }
 
     @autobind()
     formatSliderValue(val) {
@@ -209,11 +217,11 @@ export default class AudioSourceElement extends Component {
         // update audio element media props
         if(audioElm) {
             audioElm.loop = !!state.loop;
+            audioElm.muted = !!state.muted;
         }
 
 
-        return <div className="card">
-            <div className="caption">Audio source</div>
+        return <div>
             <div>
                 <input
                     style={{display: 'none'}}
@@ -223,7 +231,6 @@ export default class AudioSourceElement extends Component {
                     ref={this.fileInputElementRef}
                 />
                 <audio
-                    controls
                     onCanPlay={this.handleCanPlay}
                     onTimeUpdate={this.handleAudioTimeupdate}
                     onPlay={this.handlePlayAudio}
@@ -232,20 +239,26 @@ export default class AudioSourceElement extends Component {
                     ref={this.audioElementRef}
                 />
                 <div className="d-flex">
-                    <ButtonGroup>
+                    <ButtonGroup className="align-self-start">
+                        <Button color="primary" onClick={this.handleChooseButtonClick}>
+                            <FontAwesomeIcon icon={faEject}/>
+                        </Button>
                         <Button color="primary" onClick={this.handlePlayPauseButton} disabled={!state.mediaFileUrl}>
                             <FontAwesomeIcon icon={playPauseIcon[state.playState]}/>
                         </Button>
                         <Button color="primary" active={!!state.loop} onClick={this.handleLoopButton}>
                             <FontAwesomeIcon icon={faUndoAlt}/>
                         </Button>
+                        <Button color="primary" active={!!state.muted} onClick={this.handleMuteButton}>
+                            <FontAwesomeIcon icon={faVolumeOff}/>
+                        </Button>
                     </ButtonGroup>
-                    <div>{this.formatSliderValue(state.position)}</div>
+                    <div className="pl-1 pr-1 text-monospace text-primary small">
+                        <div>{this.formatSliderValue(state.position)}</div>
+                        <div>{state.mediaFileName}</div>
+                    </div>
                 </div>
                 <div style={{position:'relative'}}>
-                    <div className="caption" style={{position: 'absolute', right:'0px', top: '-28px'}}>
-                        {state.mediaFileUrl ? this.formatSliderValue(state.sliderMax) : null}
-                    </div>
                     <Slider
                         value={state.sliderValue}
                         max={state.sliderMax}
@@ -262,15 +275,6 @@ export default class AudioSourceElement extends Component {
                     {/*disabled={state.sliderDisabled} onChange={this.onAudioSliderChange}*/}
                     {/*onInput={this.onAudioSliderInput}/>*/}
                 </div>
-                <div>
-                    <span>{state.mediaFileName}</span>
-                </div>
-            </div>
-            <div className="card-actions">
-                <button onClick={this.handleChooseButtonClick}>
-                    <i className="fas fa-file-audio fa-lg"/>
-                    {state.mediaFileName ? 'Choose another file' : 'Choose audio file'}
-                </button>
             </div>
         </div>;
     }

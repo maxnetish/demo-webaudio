@@ -28,7 +28,7 @@ export default class Convolution extends Component {
     constructor(props) {
         super(props);
 
-        this.audioElementSourceRef = React.createRef();
+        // this.audioElementSourceRef = React.createRef();
 
         this.state = {
             duration: 0.2,
@@ -111,11 +111,11 @@ export default class Convolution extends Component {
     buildAudioChain() {
         // not used
 
-        const audioElement = this.audioElementSourceRef.current &&
-            this.audioElementSourceRef.current.audioElementRef &&
-            this.audioElementSourceRef.current.audioElementRef.current;
-
-        console.log(audioElement);
+        // const audioElement = this.audioElementSourceRef.current &&
+        //     this.audioElementSourceRef.current.audioElementRef &&
+        //     this.audioElementSourceRef.current.audioElementRef.current;
+        //
+        // console.log(audioElement);
 
         // this.audioSource = this.audioContext.createMediaElementSource(this.audioElement);
         // this.convolver = this.audioContext.createConvolver();
@@ -161,7 +161,7 @@ export default class Convolution extends Component {
                                                 target="_blank">here</a>
                 </p>
             </div>
-            <AudioElementSource ref={this.audioElementSourceRef} onAudioSourceReady={this.handleAudioSourceReady}/>
+            <AudioElementSource onAudioSourceReady={this.handleAudioSourceReady}/>
             <div>
                 <input
                     type="range"
