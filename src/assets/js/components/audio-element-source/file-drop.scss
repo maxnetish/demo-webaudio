@@ -1,0 +1,23 @@
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+
+.file-drop {
+
+  padding: 3px;
+  position: relative;
+
+  &.dragging {
+    border-style: dashed;
+    border-color: $primary;
+    padding: 0;
+
+    &:before {
+      content: "Drop file(s) here";
+      position: absolute;
+      left: 1rem;
+      bottom: -0.15rem;
+      font-size: 0.75rem;
+      color: $primary;
+    }
+  }
+}

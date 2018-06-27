@@ -24,6 +24,9 @@
 
 import 'bootstrap/dist/css/bootstrap.css';
 
+import 'core-js/es6/array';
+import 'core-js/es6/string';
+
 import React from 'react';
 import {render} from 'react-dom';
 

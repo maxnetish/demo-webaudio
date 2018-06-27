@@ -15,8 +15,8 @@ import {faPlay, faPause, faUndoAlt, faEject, faVolumeOff} from '@fortawesome/fre
 import {Button, ButtonGroup} from 'reactstrap';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
-
 import './rangeslider-overrides.scss';
+import './file-drop.scss';
 
 const windowURL = window.URL;
 
@@ -36,6 +36,31 @@ function positionToDisplay(pos) {
     seconds = seconds.length === 1 ? '0' + seconds : seconds;
 
     return `${minutes}:${seconds}`;
+}
+
+function fileObjectsFromEvent(ev) {
+    let result = [];
+
+    if (ev.dataTransfer && ev.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        for (let ind = 0; ind < ev.dataTransfer.items.length; ind++) {
+            // If dropped items aren't files, reject them
+            if (ev.dataTransfer.items[ind].kind === 'file' && ev.dataTransfer.items[ind].type.startsWith('audio/')) {
+                result.push(ev.dataTransfer.items[ind].getAsFile());
+            }
+        }
+    } else if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length) {
+        // Use DataTransfer interface to access the file(s)
+        for (let ind = 0; ind < ev.dataTransfer.files.length; ind++) {
+            result.push(ev.dataTransfer.files[ind]);
+        }
+        result = result.filter(item => item.type.startsWith('audio/'));
+    }
+
+    return result;
+
+    // return result
+    //     .filter(item => item.type.startsWith('audio/'));
 }
 
 export default class AudioSourceElement extends Component {
@@ -64,8 +89,52 @@ export default class AudioSourceElement extends Component {
             playState: 'PAUSE', // PLAY
             position: null,
             loop: false,
-            muted: false
+            muted: false,
+            draggingOver: false
         };
+    }
+
+    @autobind()
+    handleDrop(e) {
+        e.preventDefault();
+
+        const files = fileObjectsFromEvent(e);
+
+        if (files.length) {
+            this.setState({
+                draggingOver: false,
+                mediaFileUrl: windowURL.createObjectURL(files[0]),
+                mediaFileName: files[0].name
+            });
+        } else {
+            this.setState({
+                draggingOver: false
+            });
+        }
+    }
+
+    @autobind()
+    handleDragEnter(e) {
+        e.preventDefault();
+        const files = fileObjectsFromEvent(e);
+        if (files && files.length) {
+            this.setState({
+                draggingOver: true
+            });
+        }
+    }
+
+    @autobind()
+    handleDragOver(e) {
+        e.preventDefault();
+    }
+
+    @autobind()
+    handleDragLeave(e) {
+        e.preventDefault();
+        this.setState({
+            draggingOver: false
+        });
     }
 
     @autobind()
@@ -85,18 +154,6 @@ export default class AudioSourceElement extends Component {
             this.fileInputElementRef.current.click(e.detail.value);
         }
     }
-
-    // @autobind()
-    // audioElementRef(elm) {
-    //     if (!elm) {
-    //         // strange: refAudioElement calls with null after set src
-    //         return;
-    //     }
-    //     if (isFunction(this.props.audioElementRef)) {
-    //         this.props.audioElementRef(elm);
-    //     }
-    //     this.audioElementRef = elm;
-    // }
 
     @autobind()
     handleAudioSliderBeginChange(e) {
@@ -191,7 +248,7 @@ export default class AudioSourceElement extends Component {
             loop: !prev.loop
         }));
     }
-    
+
     @autobind()
     handleMuteButton(e) {
         this.setState(prev => ({
@@ -208,73 +265,80 @@ export default class AudioSourceElement extends Component {
         const state = this.state;
         const props = this.props;
         const audioElm = this.audioElementRef.current;
-
         const playPauseIcon = {
             'PLAY': faPause,
             'PAUSE': faPlay
         };
+        const wrapperClass = classNames({
+            'file-drop dragging': state.draggingOver,
+            'file-drop': !state.draggingOver
+        });
 
         // update audio element media props
-        if(audioElm) {
+        if (audioElm) {
             audioElm.loop = !!state.loop;
             audioElm.muted = !!state.muted;
         }
 
 
-        return <div>
-            <div>
-                <input
-                    style={{display: 'none'}}
-                    type="file"
-                    accept="audio/*"
-                    onChange={this.handleChangeFileInput}
-                    ref={this.fileInputElementRef}
-                />
-                <audio
-                    onCanPlay={this.handleCanPlay}
-                    onTimeUpdate={this.handleAudioTimeupdate}
-                    onPlay={this.handlePlayAudio}
-                    onPause={this.handlePauseAudio}
-                    src={state.mediaFileUrl}
-                    ref={this.audioElementRef}
-                />
-                <div className="d-flex">
-                    <ButtonGroup className="align-self-start">
-                        <Button color="primary" onClick={this.handleChooseButtonClick}>
-                            <FontAwesomeIcon icon={faEject}/>
-                        </Button>
-                        <Button color="primary" onClick={this.handlePlayPauseButton} disabled={!state.mediaFileUrl}>
-                            <FontAwesomeIcon icon={playPauseIcon[state.playState]}/>
-                        </Button>
-                        <Button color="primary" active={!!state.loop} onClick={this.handleLoopButton}>
-                            <FontAwesomeIcon icon={faUndoAlt}/>
-                        </Button>
-                        <Button color="primary" active={!!state.muted} onClick={this.handleMuteButton}>
-                            <FontAwesomeIcon icon={faVolumeOff}/>
-                        </Button>
-                    </ButtonGroup>
-                    <div className="pl-1 pr-1 text-monospace text-primary small">
-                        <div>{this.formatSliderValue(state.position)}</div>
-                        <div>{state.mediaFileName}</div>
-                    </div>
+        return <div
+            onDrop={this.handleDrop}
+            onDragEnter={this.handleDragEnter}
+            onDragOver={this.handleDragOver}
+            onDragLeave={this.handleDragLeave}
+            className={wrapperClass}
+        >
+            <input
+                style={{display: 'none'}}
+                type="file"
+                accept="audio/*"
+                onChange={this.handleChangeFileInput}
+                ref={this.fileInputElementRef}
+            />
+            <audio
+                onCanPlay={this.handleCanPlay}
+                onTimeUpdate={this.handleAudioTimeupdate}
+                onPlay={this.handlePlayAudio}
+                onPause={this.handlePauseAudio}
+                src={state.mediaFileUrl}
+                ref={this.audioElementRef}
+            />
+            <div className="d-flex">
+                <ButtonGroup className="align-self-start">
+                    <Button color="primary" onClick={this.handleChooseButtonClick}>
+                        <FontAwesomeIcon icon={faEject}/>
+                    </Button>
+                    <Button color="primary" onClick={this.handlePlayPauseButton} disabled={!state.mediaFileUrl}>
+                        <FontAwesomeIcon icon={playPauseIcon[state.playState]}/>
+                    </Button>
+                    <Button color="primary" active={!!state.loop} onClick={this.handleLoopButton}>
+                        <FontAwesomeIcon icon={faUndoAlt}/>
+                    </Button>
+                    <Button color="primary" active={!!state.muted} onClick={this.handleMuteButton}>
+                        <FontAwesomeIcon icon={faVolumeOff}/>
+                    </Button>
+                </ButtonGroup>
+                <div className="pl-1 pr-1 text-monospace text-primary small">
+                    <div>{this.formatSliderValue(state.position)}</div>
+                    <div>{state.mediaFileName}</div>
                 </div>
-                <div style={{position:'relative'}}>
-                    <Slider
-                        value={state.sliderValue}
-                        max={state.sliderMax}
-                        step={state.sliderStep}
-                        orientation="horizontal"
-                        tooltip={true}
-                        format={this.formatSliderValue}
-                        onChangeStart={this.handleAudioSliderBeginChange}
-                        onChangeComplete={this.handleAudioSliderChangeComplete}
-                        onChange={this.handleAudioSliderChange}
-                        ref={this.sliderPositionRef}
-                    />
-                    {/*<Slider step={state.sliderStep} value={state.sliderValue} max={state.sliderMax}*/}
-                    {/*disabled={state.sliderDisabled} onChange={this.onAudioSliderChange}*/}
-                    {/*onInput={this.onAudioSliderInput}/>*/}
-                </div>
+            </div>
+            <div style={{position: 'relative'}}>
+                <Slider
+                    value={state.sliderValue}
+                    max={state.sliderMax}
+                    step={state.sliderStep}
+                    orientation="horizontal"
+                    tooltip={true}
+                    format={this.formatSliderValue}
+                    onChangeStart={this.handleAudioSliderBeginChange}
+                    onChangeComplete={this.handleAudioSliderChangeComplete}
+                    onChange={this.handleAudioSliderChange}
+                    ref={this.sliderPositionRef}
+                />
+                {/*<Slider step={state.sliderStep} value={state.sliderValue} max={state.sliderMax}*/}
+                {/*disabled={state.sliderDisabled} onChange={this.onAudioSliderChange}*/}
+                {/*onInput={this.onAudioSliderInput}/>*/}
             </div>
         </div>;
     }

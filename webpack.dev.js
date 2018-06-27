@@ -11,7 +11,7 @@ module.exports = merge(common, {
         port: 9000,
         disableHostCheck: true,
         host: '0.0.0.0',
-        open: 'chromium'
+        open: 'firefox-developer-edition'
     },
     plugins: []
 });
