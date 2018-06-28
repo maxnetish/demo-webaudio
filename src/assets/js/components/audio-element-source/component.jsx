@@ -15,8 +15,8 @@ import {faPlay, faPause, faUndoAlt, faEject, faVolumeOff} from '@fortawesome/fre
 import {Button, ButtonGroup} from 'reactstrap';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
-import './rangeslider-overrides.scss';
-import './file-drop.scss';
+import '../../../css/rangeslider-overrides.scss';
+import '../../../css/file-drop.scss';
 
 const windowURL = window.URL;
 
@@ -74,7 +74,6 @@ export default class AudioSourceElement extends Component {
 
         this.fileInputElementRef = React.createRef();
         this.audioElementRef = React.createRef();
-        this.sliderPositionRef = React.createRef();
 
         this.canPlaySentOnce = false;
         this.sliderChanging = false;
@@ -281,64 +280,71 @@ export default class AudioSourceElement extends Component {
         }
 
 
-        return <div
-            onDrop={this.handleDrop}
-            onDragEnter={this.handleDragEnter}
-            onDragOver={this.handleDragOver}
-            onDragLeave={this.handleDragLeave}
-            className={wrapperClass}
-        >
-            <input
-                style={{display: 'none'}}
-                type="file"
-                accept="audio/*"
-                onChange={this.handleChangeFileInput}
-                ref={this.fileInputElementRef}
-            />
-            <audio
-                onCanPlay={this.handleCanPlay}
-                onTimeUpdate={this.handleAudioTimeupdate}
-                onPlay={this.handlePlayAudio}
-                onPause={this.handlePauseAudio}
-                src={state.mediaFileUrl}
-                ref={this.audioElementRef}
-            />
-            <div className="d-flex">
-                <ButtonGroup className="align-self-start">
-                    <Button color="primary" onClick={this.handleChooseButtonClick}>
-                        <FontAwesomeIcon icon={faEject}/>
-                    </Button>
-                    <Button color="primary" onClick={this.handlePlayPauseButton} disabled={!state.mediaFileUrl}>
-                        <FontAwesomeIcon icon={playPauseIcon[state.playState]}/>
-                    </Button>
-                    <Button color="primary" active={!!state.loop} onClick={this.handleLoopButton}>
-                        <FontAwesomeIcon icon={faUndoAlt}/>
-                    </Button>
-                    <Button color="primary" active={!!state.muted} onClick={this.handleMuteButton}>
-                        <FontAwesomeIcon icon={faVolumeOff}/>
-                    </Button>
-                </ButtonGroup>
-                <div className="pl-1 pr-1 text-monospace text-primary small">
-                    <div>{this.formatSliderValue(state.position)}</div>
-                    <div>{state.mediaFileName}</div>
-                </div>
-            </div>
-            <div style={{position: 'relative'}}>
-                <Slider
-                    value={state.sliderValue}
-                    max={state.sliderMax}
-                    step={state.sliderStep}
-                    orientation="horizontal"
-                    tooltip={true}
-                    format={this.formatSliderValue}
-                    onChangeStart={this.handleAudioSliderBeginChange}
-                    onChangeComplete={this.handleAudioSliderChangeComplete}
-                    onChange={this.handleAudioSliderChange}
-                    ref={this.sliderPositionRef}
+        return <div className="rounded bg-light shadow">
+            <div
+                onDrop={this.handleDrop}
+                onDragEnter={this.handleDragEnter}
+                onDragOver={this.handleDragOver}
+                onDragLeave={this.handleDragLeave}
+                className={wrapperClass}
+            >
+                <input
+                    style={{display: 'none'}}
+                    type="file"
+                    accept="audio/*"
+                    onChange={this.handleChangeFileInput}
+                    ref={this.fileInputElementRef}
                 />
-                {/*<Slider step={state.sliderStep} value={state.sliderValue} max={state.sliderMax}*/}
-                {/*disabled={state.sliderDisabled} onChange={this.onAudioSliderChange}*/}
-                {/*onInput={this.onAudioSliderInput}/>*/}
+                <audio
+                    onCanPlay={this.handleCanPlay}
+                    onTimeUpdate={this.handleAudioTimeupdate}
+                    onPlay={this.handlePlayAudio}
+                    onPause={this.handlePauseAudio}
+                    src={state.mediaFileUrl}
+                    ref={this.audioElementRef}
+                />
+                <div className="row">
+                    <div className="col">
+                        <h5>Audio player</h5>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-md-auto">
+                        <ButtonGroup>
+                            <Button color="primary" onClick={this.handleChooseButtonClick}>
+                                <FontAwesomeIcon icon={faEject}/>
+                            </Button>
+                            <Button color="primary" onClick={this.handlePlayPauseButton} disabled={!state.mediaFileUrl}>
+                                <FontAwesomeIcon icon={playPauseIcon[state.playState]}/>
+                            </Button>
+                            <Button color="primary" active={!!state.loop} onClick={this.handleLoopButton}>
+                                <FontAwesomeIcon icon={faUndoAlt}/>
+                            </Button>
+                            <Button color="primary" active={!!state.muted} onClick={this.handleMuteButton}>
+                                <FontAwesomeIcon icon={faVolumeOff}/>
+                            </Button>
+                        </ButtonGroup>
+                    </div>
+                    <div className="col text-monospace text-primary small">
+                        <div>{this.formatSliderValue(state.position)}</div>
+                        <div>{state.mediaFileName}</div>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col position-relative">
+                        <Slider
+                            value={state.sliderValue}
+                            max={state.sliderMax}
+                            step={state.sliderStep}
+                            orientation="horizontal"
+                            tooltip={true}
+                            format={this.formatSliderValue}
+                            onChangeStart={this.handleAudioSliderBeginChange}
+                            onChangeComplete={this.handleAudioSliderChangeComplete}
+                            onChange={this.handleAudioSliderChange}
+                        />
+                    </div>
+                </div>
             </div>
         </div>;
     }
