@@ -1,12 +1,11 @@
 import React from 'react';
 import {Component} from 'react';
-import classNames from 'classnames';
 
 import autobind from 'core-decorators/es/autobind';
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faPlay, faStop, faPause, faUndoAlt, faEject, faVolumeOff} from '@fortawesome/free-solid-svg-icons';
-import {Input, Alert, Button} from 'reactstrap';
+import {faToggleOn, faToggleOff} from '@fortawesome/free-solid-svg-icons';
+import {Button} from 'reactstrap';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
 import '../../../css/rangeslider-overrides.scss';
@@ -33,6 +32,7 @@ const convolverParameters = [
     {
         code: 'gain',
         label: 'Gain',
+        // GainNode.gain has maxValue: Infinity
         min: 0,
         max: 1,
         step: 0.05
@@ -40,6 +40,10 @@ const convolverParameters = [
 ];
 
 const propsOfImpulseBuffer = ['duration', 'decay'];
+
+function prepareConvolverParameters(props) {
+    return convolverParameters.map(p => p);
+}
 
 function impulseResponse({duration = 0.2, decay = 2, reverse = false, contextInstance}) {
     const sampleRate = contextInstance.sampleRate || 44100;
@@ -61,8 +65,10 @@ function impulseResponse({duration = 0.2, decay = 2, reverse = false, contextIns
 export default class ConvolverFunction extends Component {
 
     static propTypes = {
-        onConvolverReady: PropTypes.func.isRequired,
-        audioContextInstance: PropTypes.object.isRequired
+        convolverNode: PropTypes.instanceOf(ConvolverNode).isRequired,
+        gainNode: PropTypes.instanceOf(GainNode).isRequired,
+        powerOn: PropTypes.bool,
+        onPowerToggle: PropTypes.func
     };
 
     constructor(props) {
@@ -75,19 +81,13 @@ export default class ConvolverFunction extends Component {
         };
 
         this.changing = {};
+        this.localConvolverParameters = prepareConvolverParameters(props);
 
-        this.convolver = props.audioContextInstance.createConvolver();
-        this.convolverGain = props.audioContextInstance.createGain();
-
-        this.convolver.loop = true;
-        this.convolver.normalize = true;
-        this.convolverGain.gain.value = this.state.gain;
-
-        this.convolver.connect(this.convolverGain);
+        props.convolverNode.loop = true;
+        props.convolverNode.normalize = true;
+        props.gainNode.gain.value = this.state.gain;
 
         this.updateImpulseBuffer();
-
-        props.onConvolverReady({inputNode: this.convolver, outputNode: this.convolverGain});
     }
 
     @autobind()
@@ -124,29 +124,31 @@ export default class ConvolverFunction extends Component {
         if (propsOfImpulseBuffer.some(prop => {
             return self.currentIpulseParams[prop] !== self.state[prop];
         })) {
-            this.impulseBuffer = impulseResponse(Object.assign({contextInstance: this.props.audioContextInstance}, pick(this.state, propsOfImpulseBuffer)));
-            if (this.convolver) {
-                this.convolver.buffer = this.impulseBuffer;
-            }
+            this.impulseBuffer = impulseResponse(Object.assign({contextInstance: this.props.convolverNode.context}, pick(this.state, propsOfImpulseBuffer)));
+            this.props.convolverNode.buffer = this.impulseBuffer;
             this.currentIpulseParams = pick(this.state, propsOfImpulseBuffer);
         }
     }
 
     render() {
         const state = this.state;
+        const props = this.props;
 
         this.updateImpulseBuffer();
-        if (this.convolverGain) {
-            this.convolverGain.gain.value = this.state.gain;
-        }
+        props.gainNode.gain.value = this.state.gain;
 
         return <div className="rounded bg-light shadow p-1">
             <div className="row">
+                <div className="col-md-auto">
+                    <Button color="primary" active={!!props.powerOn} onClick={props.onPowerToggle}>
+                        <FontAwesomeIcon icon={props.powerOn ? faToggleOn : faToggleOff}/>
+                    </Button>
+                </div>
                 <div className="col">
                     <h5>Convolver</h5>
                 </div>
             </div>
-            {convolverParameters.map(convolverParameter =>
+            {this.localConvolverParameters.map(convolverParameter =>
                 <div className="row" key={convolverParameter.code}>
                     <div className="col-sm-8">
                         <Slider

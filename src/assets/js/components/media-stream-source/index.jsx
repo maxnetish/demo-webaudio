@@ -1,12 +1,11 @@
 import React from 'react';
 import {Component} from 'react';
-import classNames from 'classnames';
 
 import autobind from 'core-decorators/es/autobind';
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faPlay, faStop, faPause, faUndoAlt, faEject, faVolumeOff} from '@fortawesome/free-solid-svg-icons';
-import {Input, Alert, Button} from 'reactstrap';
+import {faPlay, faStop} from '@fortawesome/free-solid-svg-icons';
+import {Alert, Button} from 'reactstrap';
 import PropTypes from "prop-types";
 
 export default class MediaStreamSource extends Component {
@@ -55,13 +54,6 @@ export default class MediaStreamSource extends Component {
                     err: err
                 });
             });
-    }
-
-    @autobind()
-    handleSelevtedMediaDeviceChange(e) {
-        this.setState({
-            selectedMediaDeviceId: e.target.value
-        });
     }
 
     render() {

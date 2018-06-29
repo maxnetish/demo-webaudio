@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {Component} from 'react';
 
 import autobind from 'core-decorators/es/autobind';
-import isFunction from 'lodash/isFunction';
 import isNumber from 'lodash/isNumber';
 import isNaN from 'lodash/isNaN';
 
@@ -19,11 +18,6 @@ import '../../../css/rangeslider-overrides.scss';
 import '../../../css/file-drop.scss';
 
 const windowURL = window.URL;
-
-const playButtonLabelByState = {
-    PAUSE: 'Play',
-    PLAY: 'Pause'
-};
 
 function positionToDisplay(pos) {
     if (isNaN(pos) || !isNumber(pos)) {
@@ -58,24 +52,18 @@ function fileObjectsFromEvent(ev) {
     }
 
     return result;
-
-    // return result
-    //     .filter(item => item.type.startsWith('audio/'));
 }
 
-export default class AudioSourceElement extends Component {
+export default class AudioElementSource extends Component {
 
     static propTypes = {
-        onAudioSourceReady: PropTypes.func.isRequired
+        onAudioElementRef: PropTypes.func.isRequired
     };
 
     constructor(props) {
         super(props);
 
         this.fileInputElementRef = React.createRef();
-        this.audioElementRef = React.createRef();
-
-        this.canPlaySentOnce = false;
         this.sliderChanging = false;
 
         this.state = {
@@ -165,8 +153,8 @@ export default class AudioSourceElement extends Component {
         const localSliderValue = this.state.sliderValue;
         setTimeout(function () {
             self.sliderChanging = false;
-            if (self.audioElementRef.current) {
-                self.audioElementRef.current.currentTime = localSliderValue;
+            if (this.audioElementRef) {
+                this.audioElementRef.currentTime = localSliderValue;
             }
         }, 0);
     }
@@ -175,46 +163,40 @@ export default class AudioSourceElement extends Component {
     handleAudioSliderChange(e) {
         // set flag sliderChanging to prevent handleAudioTimeupdate() of setting slider value before call handleAudioSliderChangeComplete()
         this.sliderChanging = true;
-        this.setState(prev => ({
+        this.setState({
             sliderValue: e
-        }));
+        });
     }
 
     @autobind()
     handleCanPlay(e) {
         const {duration, currentTime} = e.target;
-
-        if (isFunction(this.props.onAudioSourceReady) && !this.canPlaySentOnce) {
-            this.props.onAudioSourceReady(this.audioElementRef);
-            this.canPlaySentOnce = true;
-        }
-
-        this.setState(prev => ({
+        this.setState({
             sliderMax: duration,
             sliderMin: 0,
             sliderValue: currentTime,
             sliderStep: 0.1
-        }));
+        });
     }
 
     @autobind()
     handleAudioTimeupdate(e) {
         const {currentTime} = e.target;
         if (this.sliderChanging) {
-            this.setState(prev => ({
+            this.setState({
                 position: currentTime
-            }));
+            });
         } else {
-            this.setState(prev => ({
+            this.setState({
                 position: currentTime,
                 sliderValue: currentTime
-            }));
+            });
         }
     }
 
     @autobind()
     handlePlayPauseButton(e) {
-        const audioElm = this.audioElementRef.current;
+        const audioElm = this.audioElementRef;
         if (!audioElm) {
             return;
         }
@@ -228,17 +210,17 @@ export default class AudioSourceElement extends Component {
     @autobind()
     handlePlayAudio(e) {
         const {paused} = e.target;
-        this.setState(prev => ({
+        this.setState({
             playState: paused ? 'PAUSE' : 'PLAY'
-        }));
+        });
     }
 
     @autobind()
     handlePauseAudio(e) {
         const {paused} = e.target;
-        this.setState(prev => ({
+        this.setState({
             playState: paused ? 'PAUSE' : 'PLAY'
-        }));
+        });
     }
 
     @autobind()
@@ -260,10 +242,17 @@ export default class AudioSourceElement extends Component {
         return positionToDisplay(val);
     }
 
+    @autobind()
+    setAudioElementRef(audioElement) {
+        this.audioElementRef = audioElement;
+        if (this.props.onAudioElementRef) {
+            this.props.onAudioElementRef(audioElement);
+        }
+    }
+
     render() {
         const state = this.state;
-        const props = this.props;
-        const audioElm = this.audioElementRef.current;
+        const audioElm = this.audioElementRef;
         const playPauseIcon = {
             'PLAY': faPause,
             'PAUSE': faPlay
@@ -301,7 +290,7 @@ export default class AudioSourceElement extends Component {
                     onPlay={this.handlePlayAudio}
                     onPause={this.handlePauseAudio}
                     src={state.mediaFileUrl}
-                    ref={this.audioElementRef}
+                    ref={this.setAudioElementRef}
                 />
                 <div className="row">
                     <div className="col">
