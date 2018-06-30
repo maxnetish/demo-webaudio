@@ -14,6 +14,8 @@ import isNaN from 'lodash/isNaN';
 import isNumber from 'lodash/isNumber';
 import pick from 'lodash/pick';
 
+import MyToggleButton from '../toggle-button';
+
 const convolverParameters = [
     {
         code: 'duration',
@@ -134,15 +136,15 @@ export default class ConvolverFunction extends Component {
         const state = this.state;
         const props = this.props;
 
+        const {powerOn, onPowerToggle, ...other} = props;
+
         this.updateImpulseBuffer();
         props.gainNode.gain.value = this.state.gain;
 
         return <div className="rounded bg-light shadow p-1">
             <div className="row">
                 <div className="col-md-auto">
-                    <Button color="primary" active={!!props.powerOn} onClick={props.onPowerToggle}>
-                        <FontAwesomeIcon icon={props.powerOn ? faToggleOn : faToggleOff}/>
-                    </Button>
+                    <MyToggleButton powerOn={powerOn} onPowerToggle={onPowerToggle} {...other}/>
                 </div>
                 <div className="col">
                     <h5>Convolver</h5>

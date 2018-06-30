@@ -1,0 +1,15 @@
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+
+.analyzer-panel {
+  height: 128px;
+  display: flex;
+
+  .analyzer-panel__bar {
+    flex-grow: 1;
+    align-self: end;
+    background-color: $cyan;
+    transition: height 0.1s;
+    margin: 0 1px;
+  }
+}
