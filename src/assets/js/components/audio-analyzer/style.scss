@@ -7,7 +7,7 @@
 
   .analyzer-panel__bar {
     flex-grow: 1;
-    align-self: end;
+    align-self: flex-end;
     background-color: $cyan;
     transition: height 0.1s;
     margin: 0 1px;
