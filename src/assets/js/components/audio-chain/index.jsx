@@ -8,6 +8,7 @@ import {Alert} from 'reactstrap';
 import AudioElementSource from '../audio-element-source';
 import MediaStreamSource from '../media-stream-source';
 import ConvolverFunction from '../convolver-function';
+import ConvolverFile from '../convolver-file';
 import AudioAnalyzer from '../audio-analyzer';
 
 export default class AudioChain extends Component {
@@ -16,7 +17,8 @@ export default class AudioChain extends Component {
 
         this.state = {
             convolverFunctionOn: true,
-            audioAnalyzerOn: true
+            audioAnalyzerOn: true,
+            convolverFileOn: true
         };
 
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -33,6 +35,11 @@ export default class AudioChain extends Component {
         this.convolverNodeFunction.connect(this.gainNodeForConvolverFunction);
         this.gainNodeForConvolverFunction.connect(this.audioAnalyzerNode);
 
+        // create audio node for convolver file
+        this.convolverNodeFile = this.audioContext.createConvolver();
+        this.gainNodeForVonvolverFile = this.audioContext.createGain();
+        this.convolverNodeFile.connect(this.gainNodeForVonvolverFile);
+        this.gainNodeForVonvolverFile.connect(this.audioAnalyzerNode);
     }
 
     @autobind()
@@ -41,6 +48,7 @@ export default class AudioChain extends Component {
         if (audioElmRef) {
             this.mediaElementAudioSourceNode = this.audioContext.createMediaElementSource(audioElmRef);
             this.mediaElementAudioSourceNode.connect(this.convolverNodeFunction);
+            this.mediaElementAudioSourceNode.connect(this.convolverNodeFile);
             this.mediaElementAudioSourceNode.connect(this.audioAnalyzerNode);
         }
     }
@@ -50,6 +58,7 @@ export default class AudioChain extends Component {
         // audio stream is open...
         this.mediaStreamAudioSourceNode = this.audioContext.createMediaStreamSource(audioStream);
         this.mediaStreamAudioSourceNode.connect(this.convolverNodeFunction);
+        this.mediaStreamAudioSourceNode.connect(this.convolverNodeFile);
         this.mediaStreamAudioSourceNode.connect(this.audioAnalyzerNode);
     }
 
@@ -57,12 +66,26 @@ export default class AudioChain extends Component {
     handleConvolverFunctionPowerToggle(e) {
         this.setState(prev => {
             if (prev.convolverFunctionOn) {
-                this.gainNodeForConvolverFunction.disconnect(this.audioAnalyzerNode)
+                this.gainNodeForConvolverFunction.disconnect(this.audioAnalyzerNode);
             } else {
                 this.gainNodeForConvolverFunction.connect(this.audioAnalyzerNode);
             }
             return {
                 convolverFunctionOn: !prev.convolverFunctionOn
+            };
+        });
+    }
+
+    @autobind()
+    handleConvolverFilePowerToggle(e) {
+        this.setState(prev => {
+            if (prev.convolverFileOn) {
+                this.gainNodeForVonvolverFile.disconnect(this.audioAnalyzerNode);
+            } else {
+                this.gainNodeForVonvolverFile.connect(this.audioAnalyzerNode);
+            }
+            return {
+                convolverFileOn: !prev.convolverFileOn
             };
         });
     }
@@ -103,6 +126,14 @@ export default class AudioChain extends Component {
                                        powerOn={this.state.convolverFunctionOn}
                                        onPowerToggle={this.handleConvolverFunctionPowerToggle}/>
                 </div>
+                <div className="col">
+                    <ConvolverFile convolverNode={this.convolverNodeFile}
+                                   gainNode={this.gainNodeForVonvolverFile}
+                                   powerOn={this.state.convolverFileOn}
+                                   onPowerToggle={this.handleConvolverFilePowerToggle}/>
+                </div>
+            </div>
+            <div className="row mb-3">
                 <div className="col">
                     <AudioAnalyzer powerOn={this.state.audioAnalyzerOn}
                                    onPowerToggle={this.handleAudioAnalyzerPowerToggle}

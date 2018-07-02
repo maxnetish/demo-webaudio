@@ -103,7 +103,7 @@ export default class ConvolverFunction extends Component {
     }
 
     @autobind()
-    handleliderChange(paramCode, e) {
+    handleSliderChange(paramCode, e) {
         this.changing[paramCode] = true;
         this.setState({
             [paramCode]: e
@@ -147,7 +147,7 @@ export default class ConvolverFunction extends Component {
                     <MyToggleButton powerOn={powerOn} onPowerToggle={onPowerToggle} {...other}/>
                 </div>
                 <div className="col">
-                    <h5>Convolver</h5>
+                    <h5>Convolver based on calculated random buffer</h5>
                 </div>
             </div>
             {this.localConvolverParameters.map(convolverParameter =>
@@ -163,7 +163,7 @@ export default class ConvolverFunction extends Component {
                             format={this.formatSliderValue}
                             onChangeStart={this.handleSliderBeginChange.bind(this, convolverParameter.code)}
                             onChangeComplete={this.handleSliderChangeComplete.bind(this, convolverParameter.code)}
-                            onChange={this.handleliderChange.bind(this, convolverParameter.code)}
+                            onChange={this.handleSliderChange.bind(this, convolverParameter.code)}
                         />
                     </div>
                     <div className="col-sm-1 align-self-center text-primary text-monospace">

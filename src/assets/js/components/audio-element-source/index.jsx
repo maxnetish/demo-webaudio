@@ -17,6 +17,8 @@ import 'react-rangeslider/lib/index.css';
 import '../../../css/rangeslider-overrides.scss';
 import '../../../css/file-drop.scss';
 
+import fileObjectsFromEvent from '../../utils/file-object-from-drop-event';
+
 const windowURL = window.URL;
 
 function positionToDisplay(pos) {
@@ -32,26 +34,8 @@ function positionToDisplay(pos) {
     return `${minutes}:${seconds}`;
 }
 
-function fileObjectsFromEvent(ev) {
-    let result = [];
-
-    if (ev.dataTransfer && ev.dataTransfer.items) {
-        // Use DataTransferItemList interface to access the file(s)
-        for (let ind = 0; ind < ev.dataTransfer.items.length; ind++) {
-            // If dropped items aren't files, reject them
-            if (ev.dataTransfer.items[ind].kind === 'file' && ev.dataTransfer.items[ind].type.startsWith('audio/')) {
-                result.push(ev.dataTransfer.items[ind].getAsFile());
-            }
-        }
-    } else if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length) {
-        // Use DataTransfer interface to access the file(s)
-        for (let ind = 0; ind < ev.dataTransfer.files.length; ind++) {
-            result.push(ev.dataTransfer.files[ind]);
-        }
-        result = result.filter(item => item.type.startsWith('audio/'));
-    }
-
-    return result;
+function fileObjectsFromEventLocal(event) {
+    return fileObjectsFromEvent({event, typeStartsWith: 'audio/'});
 }
 
 export default class AudioElementSource extends Component {
@@ -85,7 +69,7 @@ export default class AudioElementSource extends Component {
     handleDrop(e) {
         e.preventDefault();
 
-        const files = fileObjectsFromEvent(e);
+        const files = fileObjectsFromEventLocal(e);
 
         if (files.length) {
             this.setState({
@@ -103,7 +87,7 @@ export default class AudioElementSource extends Component {
     @autobind()
     handleDragEnter(e) {
         e.preventDefault();
-        const files = fileObjectsFromEvent(e);
+        const files = fileObjectsFromEventLocal(e);
         if (files && files.length) {
             this.setState({
                 draggingOver: true
