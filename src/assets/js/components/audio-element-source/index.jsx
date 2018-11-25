@@ -11,7 +11,7 @@ import classNames from 'classnames';
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faPlay, faPause, faUndoAlt, faEject, faVolumeOff} from '@fortawesome/free-solid-svg-icons';
-import {Button, ButtonGroup} from 'reactstrap';
+import {Alert, Button, ButtonGroup} from 'reactstrap';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
 import '../../../css/rangeslider-overrides.scss';
@@ -61,7 +61,8 @@ export default class AudioElementSource extends Component {
             position: null,
             loop: false,
             muted: false,
-            draggingOver: false
+            draggingOver: false,
+            error: null
         };
     }
 
@@ -114,7 +115,8 @@ export default class AudioElementSource extends Component {
         if (fileObject) {
             this.setState(prev => ({
                 mediaFileUrl: windowURL.createObjectURL(fileObject),
-                mediaFileName: fileObject.name
+                mediaFileName: fileObject.name,
+                error: null
             }));
         }
     }
@@ -222,6 +224,14 @@ export default class AudioElementSource extends Component {
     }
 
     @autobind()
+    handleAudioError(e) {
+        const {error} = e.target;
+        this.setState({
+            error
+        });
+    }
+
+    @autobind()
     formatSliderValue(val) {
         return positionToDisplay(val);
     }
@@ -273,6 +283,7 @@ export default class AudioElementSource extends Component {
                     onTimeUpdate={this.handleAudioTimeupdate}
                     onPlay={this.handlePlayAudio}
                     onPause={this.handlePauseAudio}
+                    onError={this.handleAudioError}
                     src={state.mediaFileUrl}
                     ref={this.setAudioElementRef}
                 />
@@ -303,6 +314,14 @@ export default class AudioElementSource extends Component {
                         <div>{state.mediaFileName}</div>
                     </div>
                 </div>
+                {state.error ?
+                    <div className="row mt-1">
+                        <div className="col">
+                            <Alert color="danger">{state.error.message || state.error.toString()}</Alert>
+                        </div>
+                    </div> :
+                    null
+                }
                 <div className="row">
                     <div className="col position-relative">
                         <Slider

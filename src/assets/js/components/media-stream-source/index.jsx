@@ -83,9 +83,9 @@ export default class MediaStreamSource extends Component {
                 </div>
             </div>
             {state.err ?
-                <div className="row">
+                <div className="row mt-1">
                     <div className="col">
-                        <Alert color="danger">{state.err.toString()}</Alert>
+                        <Alert color="danger">{state.err.message || state.err.toString()}</Alert>
                     </div>
                 </div> :
                 null
