@@ -5,7 +5,7 @@ import autobind from 'core-decorators/es/autobind';
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faToggleOn, faToggleOff} from '@fortawesome/free-solid-svg-icons';
-import {Button} from 'reactstrap';
+import {Alert, Button} from 'reactstrap';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
 import '../../../css/rangeslider-overrides.scss';
@@ -79,7 +79,8 @@ export default class ConvolverFunction extends Component {
         this.state = {
             duration: 0.2,
             decay: 2,
-            gain: 0.5
+            gain: 0.5,
+            error: null
         };
 
         this.changing = {};
@@ -89,7 +90,12 @@ export default class ConvolverFunction extends Component {
         props.convolverNode.normalize = true;
         props.gainNode.gain.value = this.state.gain;
 
-        this.updateImpulseBuffer();
+        try {
+            this.updateImpulseBuffer();
+        }
+        catch (error) {
+            this.state.error = error;
+        }
     }
 
     @autobind()
@@ -111,7 +117,7 @@ export default class ConvolverFunction extends Component {
     }
 
     @autobind()
-    formatSliderValue(val){
+    formatSliderValue(val) {
         if (isNaN(val) || !isNumber(val)) {
             return '-';
         }
@@ -121,6 +127,7 @@ export default class ConvolverFunction extends Component {
     @autobind
     updateImpulseBuffer() {
         const self = this;
+
         this.currentIpulseParams = this.currentIpulseParams || {};
 
         if (propsOfImpulseBuffer.some(prop => {
@@ -135,10 +142,19 @@ export default class ConvolverFunction extends Component {
     render() {
         const state = this.state;
         const props = this.props;
+        let {error} = state;
 
         const {powerOn, onPowerToggle, ...other} = props;
 
-        this.updateImpulseBuffer();
+        if (!error) {
+            try {
+                this.updateImpulseBuffer();
+            }
+            catch (e) {
+                error = e;
+            }
+        }
+
         props.gainNode.gain.value = this.state.gain;
 
         return <div className="rounded bg-light shadow p-1">
@@ -174,6 +190,14 @@ export default class ConvolverFunction extends Component {
                     </div>
                 </div>
             )}
+            {error ? <div className="row mt-1">
+                <div className="col">
+                    <Alert color="danger">
+                        {error.message || error.toString()}
+                    </Alert>
+                </div>
+            </div> : null}
         </div>;
     }
-};
+}
+;

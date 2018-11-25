@@ -254,7 +254,7 @@ export default class ConvolverFile extends Component {
                         </Alert>
                     </div>
                 </div>
-                {state.err ? <div className="row">
+                {state.err ? <div className="row mt-1">
                     <div className="col">
                         <Alert color="danger">
                             {state.err.toString()}
