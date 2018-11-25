@@ -137,8 +137,8 @@ export default class AudioElementSource extends Component {
         const localSliderValue = this.state.sliderValue;
         setTimeout(function () {
             self.sliderChanging = false;
-            if (this.audioElementRef) {
-                this.audioElementRef.currentTime = localSliderValue;
+            if (self.audioElementRef) {
+                self.audioElementRef.currentTime = localSliderValue;
             }
         }, 0);
     }
