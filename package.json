@@ -70,7 +70,7 @@
         "react-dom": "^16.6.3",
         "react-rangeslider": "^2.2.0",
         "reactstrap": "^6.5.0",
-        "serve": "^7.2.0",
+        "serve": "^10.1.2",
         "stats.js": "^0.17.0"
     },
     "scripts": {
