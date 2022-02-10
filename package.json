@@ -32,7 +32,7 @@
         "mini-css-extract-plugin": "^0.4.5",
         "mkdirp": "^0.5.1",
         "ncp": "^2.0.0",
-        "node-sass": "^4.13.1",
+        "node-sass": "^7.0.0",
         "optimize-css-assets-webpack-plugin": "^4.0.3",
         "postcss-loader": "^2.1.6",
         "raw-loader": "^0.5.1",
